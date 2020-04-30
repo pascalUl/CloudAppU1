@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="static/client.js"></script>
+    <title>PMDT-Blog</title>
+</head>
+
+<body onload="afterSiteLoad()" style="background-color: burlywood;">
+    <h1>PMDT-Blog</h1> 
+
+    <hr>
+
+    <div>
+        <h3 id="title"></h3>
+        <br>
+        <img id="image" >
+        <br>
+        <label id="subtitle"></label>
+        <label id="date"></label>
+        <br>
+        <br>
+        <label id="story" style="white-space: pre-wrap"></label>
+    </div>
+
+    <hr>
+    
+    <button id="backBtn" onclick="" type="button"">Zurück</button>
+    <button id="nextBtn" onclick="" type="button"">Vor</button>
+
+    <hr>
+
+    <div>
+        <h3>New post</h3>
+
+        <label>Title:</label>
+        <br>
+        <input id="newTitle" type="text">
+        <br>
+
+        <label>Subtitle:</label>
+        <br>
+        <input id="newSubtitle" type="text">
+        <br>
+
+        <label>Story:</label>
+        <br>
+        <textarea id="newStory" rows="8" cols="75"></textarea>
+        <br>
+
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <div class="file-field input-field">
+                <div class="btn">
+                    <span>Select an image:</span>
+                    <input name="myImage" type="file">
+                </div>
+            </div>
+            <button class="btn" type="submit">Upload</button>
+        </form>
+        <hr>
+
+        <br>
+
+        <button id="saveBtn" onclick="savePost()" type="button">Save post</button>
+
+    </div>
+</body>
+
+</html>
