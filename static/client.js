@@ -3,9 +3,39 @@ console.log("Client-side code running");
 var newTitle
 var newSubtitle
 var newStory
-
+ 
 //After load site
 function afterSiteLoad(){
+
+  //ToDo: Daten von DB holen und auf Webseite setzen
+
+  //Tassilos Code: noch nicht lauffähig...
+  /*
+   MongoClient.connect(url, function(err, db) {
+    
+    if (err) throw err;
+    var dbo = db.db("CloudAppDatabase");
+
+    if (dbo.collection("MediaFiles").count(function (err, count){
+      if(!err && count ===0){
+        //if there are no pictures in db, then don't show title, image or subtitle on the homepage
+      }else{
+        dbo.collection("MediaFiles").findOne({}, function(err, result) {
+          if (err) throw err;
+          
+          var json = JSON.parse(result)
+          document.getElementById("title").innerText = json.title
+          document.getElementById("subtitle").innerText = json.subtitle
+          document.getElementById("image").src = json.source
+        
+          document.getElementById("date").innerText = json.date
+          document.getElementById("story").innerText = json.story
+
+          db.close();
+        });
+      }
+    }));
+  */
 
   document.getElementById("title").innerText = "Our last 15 days"
   document.getElementById("subtitle").innerText = "America-Tour"
@@ -16,7 +46,7 @@ function afterSiteLoad(){
 }
 
 //Save new post
-function savePost() {
+function getDataFromNewPost() {
 
   var titleLable = document.getElementById("newTitle")
   var subtitleLable = document.getElementById("newSubtitle")
