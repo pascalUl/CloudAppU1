@@ -20,22 +20,26 @@
     
 
         <div>
-            <h3 id="title"></h3>
+            <h3 id="title">  <%= title %> </h3>
             <hr>
             <br>
             <img id="image" style="width: 100%; height: 100%;">
             <br>
-            <span></span><label id="subtitle"></label>, picture added on the <label id="date"></label></span>
+            <span></span><label id="subtitle"></label> <%= subtitle %>, picture added on the  <%= date %> <label id="date"></label></span>
             <br>
             <br>
-            <label id="story" style="white-space: pre-wrap"></label>
+            <label id="story" style="white-space: pre-wrap"> <%= story %> </label>
         </div>
 
         <hr>
-        
-        <button class="btn btn-secondary btn-sm" id="backBtn" onclick="" type="button">Previous</button>
-        <button class="btn btn-secondary btn-sm" id="nextBtn" onclick="" type="button">Next</button>
        
+        <form action="/zurueck" method="POST">
+        <button class="btn btn-secondary btn-sm" id="backBtn" onclick="" type="submit">Previous</button>
+        </form>
+
+        <form action="/vor" method="POST">
+            <button class="btn btn-secondary btn-sm" id="nextBtn" type="submit">Next</button>
+        </form>
 
         <hr>
 
@@ -47,19 +51,20 @@
                 <br>
 
                     <form action="/upload" method="POST" enctype="multipart/form-data">
+                    
                         <div class="form-group">
                             <label>Title:</label>
-                            <input id="newTitle" type="text" class="form-control" required>
+                            <input name="iTitle" id="newTitle" type="text" class="form-control" required>
                         </div>
                         
                         <div class="form-group">
                             <label>Subtitle:</label>
-                            <input id="newSubtitle" type="text" class="form-control" required>
+                            <input name="iSubtitle" id="newSubtitle" type="text" class="form-control" required>
                         </div>
 
                         <div class="form-group">
                             <label for="exampleFormControlTextarea1">Story of the picture:</label>
-                            <textarea class="form-control" id="newStory" rows="4"></textarea>
+                            <textarea name="iStory" class="form-control" id="newStory" rows="4"></textarea>
                         </div>
 
                         
@@ -71,7 +76,11 @@
                         
                         <br></br>
                         <span>
-                        <button class="btn btn-primary" type="submit" onclick="getDataFromNewPost()" >Save post</button> 
+
+                        
+                        <button class="btn btn-primary" type="submit" >Save post</button> 
+                        
+                        
                         <button type="reset" class="btn btn-primary">Reset</button>
                         </span>
 
@@ -79,7 +88,6 @@
                         <br>
                         
                     </form>
-
                     
                     <!--<script>
                         // Add the following code if you want the name of the file appear on select
