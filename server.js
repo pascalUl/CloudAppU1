@@ -43,8 +43,7 @@ function getData(){
             var json = JSON.parse(result)
             document.getElementById("title").innerText = json.title
             document.getElementById("subtitle").innerText = json.subtitle
-            document.getElementById("image").src = json.source
-          
+            document.getElementById("image").src = json.source          
             document.getElementById("date").innerText = json.date
             document.getElementById("story").innerText = json.story
   
@@ -102,8 +101,7 @@ app.post('/upload', uploadPic.single('myImage'),function (req, res){
     
     var newTitle = `${req.body.iTitle}`;
     var newSubTitle = `${req.body.iSubtitle}`
-    var date = new Date()
-    var newDate = date.getHours() + ":" + date.getMinutes()
+    var date = new Date().toISOString()
     var newStory = `${req.body.iStory}`
     
     var newImage = `${req.file}`
@@ -116,7 +114,7 @@ app.post('/upload', uploadPic.single('myImage'),function (req, res){
         }
         else{
             //Insert post into db
-            insertPost(newTitle, newSubTitle, newDate, newImage, newStory)
+            insertPost(newTitle, newSubTitle, date, newImage, newStory)
             res.send("Picture uploaded!")
         }
     });
