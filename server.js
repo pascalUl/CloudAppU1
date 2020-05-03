@@ -5,6 +5,8 @@ const multer = require('multer')
 const bodyParser = require('body-parser');
 const app = express()
 var  uploadPic = multer ( {  dest : ' uploads / ' } )   
+var url = "mongodb://localhost:27017/"; 
+var id=0;
 
 var initTitle = "A"
 var initSubtitle = "B"
@@ -31,12 +33,13 @@ function insertPost(tit, sub, dat, ima, sto){
   MongoClient.connect(url, function(err, db) {
     if (err) throw err;
     var dbo = db.db("CloudAppDatabase");
-    var myobj = {title: tit, subtitle: sub, date: dat, image: ima, story: sto};  
+    var myobj = {id: id, title: tit, subtitle: sub, date: dat, image: ima, story: sto};  
+    id =id+1;
     dbo.collection("MediaFiles").insertOne(myobj, function(err, res) {
-      if (err) throw err;
-      console.log("New post inserted");
-      db.close();
-    });
+        if (err) throw err;
+        console.log("New post inserted");
+        db.close();
+      });   
   });  
 }
 
@@ -120,8 +123,7 @@ app.post('/upload', uploadPic.single('myImage'),function (req, res){
     
     var newTitle = `${req.body.iTitle}`;
     var newSubTitle = `${req.body.iSubtitle}`
-    var date = new Date()
-    var newDate = date.getHours() + ":" + date.getMinutes()
+    var date = new Date().toISOString()
     var newStory = `${req.body.iStory}`
     
     var newImage = `${req.file}`
@@ -132,7 +134,7 @@ app.post('/upload', uploadPic.single('myImage'),function (req, res){
         }
         else{
             //Insert post into db
-            insertPost(newTitle, newSubTitle, newDate, newImage, newStory)
+            insertPost(newTitle, newSubTitle, date, newImage, newStory)
             res.send("Picture uploaded!")
         }
     });
