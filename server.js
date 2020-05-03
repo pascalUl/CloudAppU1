@@ -4,10 +4,25 @@ const express = require('express')
 const multer = require('multer')
 const bodyParser = require('body-parser');
 const app = express()
-const MongoClient = require('mongodb').MongoClient;
 var  uploadPic = multer ( {  dest : ' uploads / ' } )   
 
-var url = "mongodb://localhost:27017/"; //ToDo: Falsche Adresse
+var initTitle = "A"
+var initSubtitle = "B"
+var initDate = "C"
+var initStory = "D"
+
+var number = 0
+var maxNumber
+
+const MongoClient = require('mongodb').MongoClient;
+const url = "mongodb+srv://dbUser:sudo@cluster0-t4evc.mongodb.net/test?retryWrites=true&w=majority";
+const client = new MongoClient(url, { useNewUrlParser: true });
+client.connect(err => {
+  const collection = client.db("test").collection("devices");
+  //Only test, if db is available
+  console.log("DB läuft...")
+  client.close();
+});
 
 //MongoDB
   //DB: CloudAppDatabase
@@ -26,34 +41,25 @@ function insertPost(tit, sub, dat, ima, sto){
 }
 
 //MongoDB
-function getData(){
-  //ToDo: Daten von DB holen und auf Webseite setzen
-    MongoClient.connect(url, function(err, db) {
-      
+function getData(i, callback){
+
+  MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("CloudAppDatabase");
+    dbo.collection("MediaFiles").find({}).toArray(function(err, result) {
       if (err) throw err;
-      var dbo = db.db("CloudAppDatabase");
-  
-      if (dbo.collection("MediaFiles").count(function (err, count){
-        if(!err && count ===0){
-          //if there are no pictures in db, then don't show title, image or subtitle on the homepage
-        }else{
-          dbo.collection("MediaFiles").findOne({}, function(err, result) {
-            if (err) throw err;
-            
-            var json = JSON.parse(result)
-            document.getElementById("title").innerText = json.title
-            document.getElementById("subtitle").innerText = json.subtitle
-            document.getElementById("image").src = json.source
-          
-            document.getElementById("date").innerText = json.date
-            document.getElementById("story").innerText = json.story
-  
-            db.close();
-          
-        });
-      }
-    }));
-  })
+ 
+      maxNumber = result.length-1
+      initTitle = result[i].title
+      initSubtitle = result[i].subtitle
+      initDate = result[i].date
+      initStory = result[i].story
+
+      db.close();
+      callback()
+    });
+  });  
+ 
 }
 
 //Init upload
@@ -62,38 +68,50 @@ const upload = multer({}).single('myImage')
 //Static folder
 app.use("/static", express.static('./static/'));
 
-//Start values
-var initTitle = "A"
-var initSubtitle = "B"
-var initDate = "C"
-var initStory = "D"
-
+//Start page
 app.set('view engine', 'ejs')
 app.get('/', (req, res) => {
-    res.render('index', {title: initTitle, subtitle: initSubtitle, date: initDate, story: initStory})
+  //Start values
+  console.log("NUMBER: " + number)
+  getData(number,function(){
+    refresh(res)
+  });
+  
+  
 })
 
-//Set data to forms
-app.post('/vor', function(req, res) {
-
-  //ABFRAGE für DB
-
-  initTitle = "Nächster Title"
-  initSubtitle = "Nächster Subtitle"
-  initDate = "Nächstes Datum"
-  initStory = "Nächste Story"
+function refresh(res){
   res.render('index', {title: initTitle, subtitle: initSubtitle, date: initDate, story: initStory})
+}
+
+//Set data into forms
+app.post('/vor', async function(req, res) {
+  if(number === maxNumber){
+    number = 0
+  }
+  else{
+    number = number + 1
+  }
+  console.log("NUMBER: " + number)
+  //ABFRAGE für DB
+  getData(number, function(){
+    refresh(res)
+  })
 })
 
-app.post('/zurueck', function(req, res) {
+app.post('/zurueck', async function(req, res) {
 
+  if(number === 0){
+    number = maxNumber
+  }
+  else{
+    number = number - 1
+  }
+  console.log("NUMBER: " + number)
   //ABFRAGE für DB
-
-  initTitle = "Vorheriger Title"
-  initSubtitle = "Vorheriger  Subtitle"
-  initDate = "Vorheriges Datum"
-  initStory = "Vorherige Story"
-  res.render('index', {title: initTitle, subtitle: initSubtitle, date: initDate, story: initStory})
+  getData(number, function(){
+    refresh(res)
+  })
 })
 
 app.use(bodyParser.urlencoded({ extended: true })); 
@@ -107,8 +125,6 @@ app.post('/upload', uploadPic.single('myImage'),function (req, res){
     var newStory = `${req.body.iStory}`
     
     var newImage = `${req.file}`
-
-    console.log("DATA: " + newTitle + "" + newSubTitle + "" + newStory + "" + newImage.originalname )
 
     upload(req,res, (err) =>{
         if(err){
