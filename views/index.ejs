@@ -32,14 +32,16 @@
         </div>
 
         <hr>
-       
+        
+        <span>
         <form action="/zurueck" method="POST">
         <button class="btn btn-secondary btn-sm" id="backBtn" onclick="" type="submit">Previous</button>
         </form>
 
         <form action="/vor" method="POST">
-            <button class="btn btn-secondary btn-sm" id="nextBtn" type="submit">Next</button>
+            <button class="btn btn-secondary btn-sm" id="nextBtn" type="submit" >Next</button>
         </form>
+        </span>
 
         <hr>
 
@@ -51,6 +53,12 @@
                 <br>
 
                     <form action="/upload" method="POST" enctype="multipart/form-data">
+
+                        <div class="custom-file">
+                            <input name="myImage" type="file" class="custom-file-input" id="customFile" required>
+                            <label class="custom-file-label" for="customFile">Select an image</label>
+                        </div>
+                        <br></br>
                     
                         <div class="form-group">
                             <label>Title:</label>
@@ -66,21 +74,9 @@
                             <label for="exampleFormControlTextarea1">Story of the picture:</label>
                             <textarea name="iStory" class="form-control" id="newStory" rows="4"></textarea>
                         </div>
-
                         
-                            
-                        <div class="custom-file">
-                            <input name="myImage" type="file" class="custom-file-input" id="customFile" required>
-                            <label class="custom-file-label" for="customFile">Select an image</label>
-                            </div>
-                        
-                        <br></br>
                         <span>
-
-                        
                         <button class="btn btn-primary" type="submit" >Save post</button> 
-                        
-                        
                         <button type="reset" class="btn btn-primary">Reset</button>
                         </span>
 

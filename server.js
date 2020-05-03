@@ -6,8 +6,9 @@ const bodyParser = require('body-parser');
 const app = express()
 const MongoClient = require('mongodb').MongoClient;
 var  uploadPic = multer ( {  dest : ' uploads / ' } )   
+var url = "mongodb://localhost:27017/"; 
+var id=0;
 
-var url = "mongodb://localhost:27017/"; //ToDo: Falsche Adresse
 
 //MongoDB
   //DB: CloudAppDatabase
@@ -16,17 +17,19 @@ function insertPost(tit, sub, dat, ima, sto){
   MongoClient.connect(url, function(err, db) {
     if (err) throw err;
     var dbo = db.db("CloudAppDatabase");
-    var myobj = {title: tit, subtitle: sub, date: dat, image: ima, story: sto};  
+    var myobj = {id: id, title: tit, subtitle: sub, date: dat, image: ima, story: sto};  
+    id =id+1;
     dbo.collection("MediaFiles").insertOne(myobj, function(err, res) {
-      if (err) throw err;
-      console.log("New post inserted");
-      db.close();
-    });
+        if (err) throw err;
+        console.log("New post inserted");
+        db.close();
+      });   
   });  
 }
 
 //MongoDB
 function getData(){
+  console.log("Methode getData() wurde aufgerufen.")
   //ToDo: Daten von DB holen und auf Webseite setzen
     MongoClient.connect(url, function(err, db) {
       
@@ -36,18 +39,29 @@ function getData(){
       if (dbo.collection("MediaFiles").count(function (err, count){
         if(!err && count ===0){
           //if there are no pictures in db, then don't show title, image or subtitle on the homepage
+          //Otherwise Start values
+
         }else{
-          dbo.collection("MediaFiles").findOne({}, function(err, result) {
+          dbo.collection("MediaFiles").find({}).toArray( function(err, result) {
+            var resultArray=[];
             if (err) throw err;
+            console.log(result);
+            myCursor = dbo.collection("MediaFiles").find( { id: 0 });
+            console.log(myCursor.id);//kommt undefined raus
             
-            var json = JSON.parse(result)
-            document.getElementById("title").innerText = json.title
-            document.getElementById("subtitle").innerText = json.subtitle
-            document.getElementById("image").src = json.source          
-            document.getElementById("date").innerText = json.date
-            document.getElementById("story").innerText = json.story
-  
-            db.close();
+            
+            /* Von Tassilos Versuchen
+            var cursor = dbo.collection("MediaFiles").find({});
+            //console.log(cursor);
+            cursor.forEach( function(doc, err){
+              if (err) throw err;
+              resultArray.push(doc);
+            });
+            */
+            
+            //var json = JSON.parse(result)
+
+            //return resultArray;        
           
         });
       }
@@ -69,6 +83,9 @@ var initStory = "D"
 
 app.set('view engine', 'ejs')
 app.get('/', (req, res) => {
+
+  getData();
+   
     res.render('index', {title: initTitle, subtitle: initSubtitle, date: initDate, story: initStory})
 })
 
@@ -106,7 +123,7 @@ app.post('/upload', uploadPic.single('myImage'),function (req, res){
     
     var newImage = `${req.file}`
 
-    console.log("DATA: " + newTitle + "" + newSubTitle + "" + newStory + "" + newImage.originalname )
+    console.log("DATA: " + newTitle + " " + newSubTitle + " " + newStory + " " + newImage.originalname )
 
     upload(req,res, (err) =>{
         if(err){
