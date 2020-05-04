@@ -5,7 +5,6 @@ const multer = require('multer')
 const bodyParser = require('body-parser');
 const app = express()
 var  uploadPic = multer ( {  dest : ' uploads / ' } )   
-var url = "mongodb://localhost:27017/"; 
 var id=0;
 
 var initTitle = "A"
@@ -16,7 +15,7 @@ var initStory = "D"
 var number = 0
 var maxNumber
 
-const MongoClient = require('mongodb').MongoClient;
+/*const MongoClient = require('mongodb').MongoClient;
 const url = "mongodb+srv://dbUser:sudo@cluster0-t4evc.mongodb.net/test?retryWrites=true&w=majority";
 const client = new MongoClient(url, { useNewUrlParser: true });
 client.connect(err => {
@@ -42,11 +41,11 @@ function insertPost(tit, sub, dat, ima, sto){
       });   
   });  
 }
-
+*/
 //MongoDB
 function getData(i, callback){
 
-  MongoClient.connect(url, function(err, db) {
+  /*MongoClient.connect(url, function(err, db) {
     if (err) throw err;
     var dbo = db.db("CloudAppDatabase");
     dbo.collection("MediaFiles").find({}).toArray(function(err, result) {
@@ -62,6 +61,8 @@ function getData(i, callback){
       callback()
     });
   });  
+  */
+ callback();
  
 }
 
@@ -86,7 +87,7 @@ app.get('/', (req, res) => {
 function refresh(res){
   res.render('index', {title: initTitle, subtitle: initSubtitle, date: initDate, story: initStory})
 }
-
+/*
 //Set data into forms
 app.post('/vor', async function(req, res) {
   if(number === maxNumber){
@@ -139,5 +140,6 @@ app.post('/upload', uploadPic.single('myImage'),function (req, res){
         }
     });
 })
+*/
  
 app.listen(5000)
