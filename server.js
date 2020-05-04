@@ -142,4 +142,4 @@ app.post('/upload', uploadPic.single('myImage'),function (req, res){
 })
 */
  
-app.listen(5000)
+app.listen(3000)
