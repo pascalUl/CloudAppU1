@@ -83,12 +83,16 @@ function getData(i, callback){
       if (err) throw err;
  
       maxNumber = result.length-1
+
+      if(result[i] != null || result[i] != undefined){
+
       initTitle = result[i].title
       initSubtitle = result[i].subtitle
       initDate = result[i].date
       initStory = result[i].story
       initName = result[i].image
       pathIma = dir2 + initName
+	}
 
       db.close();
       callback()
