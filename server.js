@@ -1,5 +1,44 @@
 console.log("Server gestartet.")
 
+const fs = require('fs')
+const express = require('express')
+const multer = require('multer')
+const bodyParser = require('body-parser');
+const MongoClient = require('mongodb').MongoClient;
+const app = express()
+var path = require("path");
+var dir = "./static"
+const dir2 = "./static/"
+
+//Variables 
+var initTitle = "A"
+var initSubtitle = "B"
+var initDate = "C"
+var initStory = "D"
+var pathIma = ""
+//Pic
+var pictureName
+var id=0;
+var number = 0
+var maxNumber
+
+
+/*** Start function ***/
+
+//set ejs to frontend
+app.set('view engine', 'ejs')
+
+//start function 
+app.get('/', (req, res) => {
+  
+  getData(number, function(){
+    refresh(res)
+  });
+})
+
+
+/*** AWS S3 - Upload ***/
+
 // Load the SDK
 var AWS = require('aws-sdk');
 AWS.config.loadFromPath('./config.json');
@@ -10,25 +49,13 @@ const BUCKET_NAME = 'cloudapp-media';
 // S3 Client
 var s3 = new AWS.S3( { params: {Bucket: BUCKET_NAME} } );
 
-const fs = require('fs')
-const express = require('express')
-const multer = require('multer')
-const bodyParser = require('body-parser');
-const app = express()
-var path = require("path");
-var dir = "./static"
-const dir2 = "./static/"
-var name
-
 // Save image to S3
-
 const uploadFile = (fileName) => {
   // Read content from the file
   const fileContent = fs.readFileSync(fileName);
 
   // Set Filename
   var file = path.basename(fileName)
-
 
   // Setting up S3 upload parameters
   const params = {
@@ -46,7 +73,9 @@ const uploadFile = (fileName) => {
   });
 };
 
-//uploadFile('1589272971501-11874151.jpg')
+
+/*** AWS S3 - Download ***/ 
+//getImage('1589272971501-11874151.jpg');
 
 // Read image from S3
 const getImage = (fileName) => {
@@ -61,17 +90,24 @@ const getImage = (fileName) => {
 
   s3.getObject(getParams, function(err, data) {
     // Handle any error and exit
-    if (err)
-        return err;
-
-        return objectData = data.Body.toString('utf-8'); // Use the encoding necessary
-  
-  });
+    if (err){
+      return err
+    }
+    
+    return objectData = data.Body.toString('utf-8') // Use the encoding necessary
+    });
 }
 
-//getImage('1589272971501-11874151.jpg');
 
+/*** Local file save ***/
 
+//Init upload
+const upload = multer({}).single('myImage')
+
+//Static folder
+app.use("/static", express.static('./static/'));
+
+//Check if folder exists
 if(!fs.existsSync(dir)){
   fs.mkdir(dir, function(err) {
     if (err) {
@@ -84,51 +120,58 @@ if(!fs.existsSync(dir)){
   console.log("Directory images already exists.")
 }
 
-
+//Def folder to save
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
 
     cb(null, dir)
   },
+  //Def filename to save 
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    name = uniqueSuffix + '.jpg'
-    cb(null, name)
+    pictureName = uniqueSuffix + '.jpg'
+    cb(null, pictureName)
   }
 })
 
+//Set framework to save file
 var  uploadPic = multer ( {  storage : storage } )   
-var id=0;
 
-var initTitle = "A"
-var initSubtitle = "B"
-var initDate = "C"
-var initStory = "D"
-var pathIma = ""
 
-var number = 0
-var maxNumber
+/*** MongoDB ***/
 
-const MongoClient = require('mongodb').MongoClient;
+//Init connection to MongoDB
 //const url = "mongodb+srv://dbUser:sudo@cluster0-t4evc.mongodb.net/test?retryWrites=true&w=majority";
 const url = "mongodb://localhost"
 const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
 client.connect(err => {
-  const collection = client.db("test").collection("devices");
   //Only test, if db is available
   console.log("DB läuft...")
   client.close();
 });
 
-//MongoDB
-  //DB: CloudAppDatabase
-  //Collection: MediaFiles
-function insertPost(tit, sub, dat, ima, sto){
+//Insert data into db
+  /*
+  * DB: CloudAppDatabase
+  * Collection: MediaFiles
+  */
+function insertPost(tit, sub, dat, sto){
+
+  //get connection to db
   MongoClient.connect(url, function(err, db) {
+
     if (err) throw err;
+
+    //set db
     var dbo = db.db("CloudAppDatabase");
-    var myobj = {id: id, title: tit, subtitle: sub, date: dat, image: name, story: sto};  
+
+    //create obj to insert into db
+    var myobj = {id: id, title: tit, subtitle: sub, date: dat, image: pictureName, story: sto};  
+    
+    //get current number from button previous / next 
     id =id+1;
+    
+    //insert obj into db
     dbo.collection("MediaFiles").insertOne(myobj, function(err, res) {
         if (err) throw err;
         console.log("New post inserted");
@@ -137,61 +180,46 @@ function insertPost(tit, sub, dat, ima, sto){
   });  
 }
 
-//MongoDB
+//get data from db
 function getData(i, callback){
 
+  //get connection to db
   MongoClient.connect(url, function(err, db) {
+
     if (err) throw err;
+
+    //set db
     var dbo = db.db("CloudAppDatabase");
+
+    //get data and save into array
     dbo.collection("MediaFiles").find({}).toArray(function(err, result) {
       if (err) throw err;
- 
+      
+      //get length from array to set maxNumer == Number of posts
       maxNumber = result.length-1
-console.log("In get data")
 
+      //set data into fields if data is not undefined
       if(result[i] != null || result[i] != undefined){
-	console.log("in result" + result[i].title)
-
-      initTitle = result[i].title
-      initSubtitle = result[i].subtitle
-      initDate = result[i].date
-      initStory = result[i].story
-      initName = result[i].image
-      pathIma = dir2 + initName
-	}
+        initTitle = result[i].title
+        initSubtitle = result[i].subtitle
+        initDate = result[i].date
+        initStory = result[i].story
+        initName = result[i].image
+        pathIma = dir2 + initName
+	    }
 
       db.close();
       callback()
     });
   });  
   
- callback();
- 
+  //Call next function
+  callback();
 }
 
-//Init upload
-const upload = multer({}).single('myImage')
+/*** Next / Previous Buttons ***/
 
-//Static folder
-app.use("/static", express.static('./static/'));
-
-//Start page
-app.set('view engine', 'ejs')
-app.get('/', (req, res) => {
-  //Start values
-  console.log("NUMBER: " + number)
-  getData(number,function(){
-    refresh(res)
-  });
-  
-  
-})
-
-function refresh(res){
-  res.render('index', {title: initTitle, subtitle: initSubtitle, date: initDate, story: initStory, path: pathIma})
-}
-
-//Set data into forms
+//Call next post
 app.post('/vor', async function(req, res) {
   if(number === maxNumber){
     number = 0
@@ -200,12 +228,14 @@ app.post('/vor', async function(req, res) {
     number = number + 1
   }
   console.log("NUMBER: " + number)
+
   //ABFRAGE für DB
   getData(number, function(){
     refresh(res)
   })
 })
 
+//Call previous post
 app.post('/zurueck', async function(req, res) {
 
   if(number === 0){
@@ -214,38 +244,46 @@ app.post('/zurueck', async function(req, res) {
   else{
     number = number - 1
   }
-  console.log("NUMBER: " + number)
+
   //ABFRAGE für DB
   getData(number, function(){
     refresh(res)
   })
 })
 
+
+/*** Set fields from site ***/
+
+function refresh(res){
+  res.render('index', {title: initTitle, subtitle: initSubtitle, date: initDate, story: initStory, path: pathIma})
+}
+
+
+/*** Button upload ***/
+
 app.use(bodyParser.urlencoded({ extended: true })); 
-//Button Upload
+
 app.post('/upload', uploadPic.single('myImage'),function (req, res){
     
-    var newTitle = `${req.body.iTitle}`;
-    var newSubTitle = `${req.body.iSubtitle}`
-    var date = new Date().toISOString()
-    var newStory = `${req.body.iStory}`
-    
-    var newImage = `${req.file}`
+  //Get data from fields
+  var newTitle = `${req.body.iTitle}`;
+  var newSubTitle = `${req.body.iSubtitle}`
+  var date = new Date().toISOString()
+  var newStory = `${req.body.iStory}`
 
-    upload(req,res, (err) =>{
-        if(err){
-            res.send("Picture upload failed!")
-        }
-        else{
-            //Insert post into db
-            insertPost(newTitle, newSubTitle, date, newImage, newStory)
-            res.send("Picture uploaded!")
-        }
-    });
-	uploadFile(dir + "/" + name)
+  upload(req,res, (err) =>{
+      if(err){
+          res.send("Picture upload failed!")
+      }
+      else{
+          //Insert post into db
+          insertPost(newTitle, newSubTitle, date, newStory)
+          res.send("Picture uploaded!")
+      }
+  });
+  //Upload picture into S3
+  uploadFile(dir + "/" + pictureName)
 })
 
- 
+//App-port
 app.listen(3000)
-
-
