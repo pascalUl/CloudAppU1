@@ -1,13 +1,75 @@
 console.log("Server gestartet.")
 
+// Load the SDK
+var AWS = require('aws-sdk');
+AWS.config.loadFromPath('./config.json');
+
+// The name of the bucket that you have created
+const BUCKET_NAME = 'cloudapp-media';
+
+// S3 Client
+var s3 = new AWS.S3( { params: {Bucket: BUCKET_NAME} } );
+
 const fs = require('fs')
 const express = require('express')
 const multer = require('multer')
 const bodyParser = require('body-parser');
 const app = express()
-
+var path = require("path");
 var dir = "./static"
 const dir2 = "./static/"
+
+// Save image to S3
+
+const uploadFile = (fileName) => {
+  // Read content from the file
+  const fileContent = fs.readFileSync(fileName);
+
+  // Set Filename
+  var file = path.basename(fileName)
+
+
+  // Setting up S3 upload parameters
+  const params = {
+      Bucket: BUCKET_NAME,
+      Key: file, // File name you want to save as in S3
+      Body: fileContent
+  };
+
+  // Uploading files to the bucket
+  s3.upload(params, function(err, data) {
+      if (err) {
+          throw err;
+      }
+      console.log(`File uploaded S3 successfully. ${data.Location}`);
+  });
+};
+
+//uploadFile('1589272971501-11874151.jpg')
+
+// Read image from S3
+const getImage = (fileName) => {
+
+  // Set Filename
+  var file = path.basename(fileName)
+
+  var getParams = {
+    Bucket: BUCKET_NAME, 
+    Key: file 
+  }
+
+  s3.getObject(getParams, function(err, data) {
+    // Handle any error and exit
+    if (err)
+        return err;
+
+        return objectData = data.Body.toString('utf-8'); // Use the encoding necessary
+  
+  });
+}
+
+//getImage('1589272971501-11874151.jpg');
+
 
 if(!fs.existsSync(dir)){
   fs.mkdir(dir, function(err) {
