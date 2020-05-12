@@ -18,6 +18,7 @@ const app = express()
 var path = require("path");
 var dir = "./static"
 const dir2 = "./static/"
+var name
 
 // Save image to S3
 
@@ -83,9 +84,10 @@ if(!fs.existsSync(dir)){
   console.log("Directory images already exists.")
 }
 
-var name
+
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
+
     cb(null, dir)
   },
   filename: function (req, file, cb) {
@@ -145,8 +147,10 @@ function getData(i, callback){
       if (err) throw err;
  
       maxNumber = result.length-1
+console.log("In get data")
 
       if(result[i] != null || result[i] != undefined){
+	console.log("in result" + result[i].title)
 
       initTitle = result[i].title
       initSubtitle = result[i].subtitle
@@ -238,7 +242,10 @@ app.post('/upload', uploadPic.single('myImage'),function (req, res){
             res.send("Picture uploaded!")
         }
     });
+	uploadFile(dir + "/" + name)
 })
 
  
 app.listen(3000)
+
+
