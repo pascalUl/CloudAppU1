@@ -11,17 +11,17 @@ var dir = "./static"
 const dir2 = "./static/"
 
 //Variables 
-var initTitle = "A"
-var initSubtitle = "B"
-var initDate = "C"
-var initStory = "D"
+var initTitle = "Kein Titel vorhanden"
+var initSubtitle = "Kein Subtitel vorhanden"
+var initDate = "Kein Datum vorhanden"
+var initStory = "Keine Story vorhanden"
 var pathIma = ""
 //Pic
 var pictureName
+var picFile
 var id=0;
 var number = 0
 var maxNumber
-
 
 /*** Start function ***/
 
@@ -38,6 +38,7 @@ app.get('/', (req, res) => {
 
 
 /*** AWS S3 - Upload ***/
+//uploadFile('1589272971501-11874151.jpg');
 
 // Load the SDK
 var AWS = require('aws-sdk');
@@ -80,6 +81,7 @@ const uploadFile = (fileName) => {
 // Read image from S3
 const getImage = (fileName) => {
 
+  console.log("Filename: " + fileName)
   // Set Filename
   var file = path.basename(fileName)
 
@@ -87,15 +89,14 @@ const getImage = (fileName) => {
     Bucket: BUCKET_NAME, 
     Key: file 
   }
-
+  
   s3.getObject(getParams, function(err, data) {
     // Handle any error and exit
-    if (err){
-      return err
-    }
-    
-    return objectData = data.Body.toString('utf-8') // Use the encoding necessary
-    });
+    if (err) return err
+
+    picFile = "" + data.Body.toString('base64')
+    console.log("File downloaded successfully.");
+    });  
 }
 
 
@@ -141,8 +142,9 @@ var  uploadPic = multer ( {  storage : storage } )
 /*** MongoDB ***/
 
 //Init connection to MongoDB
-//const url = "mongodb+srv://dbUser:sudo@cluster0-t4evc.mongodb.net/test?retryWrites=true&w=majority";
-const url = "mongodb://localhost"
+//mongodb+srv://<username>:<password>@cluster0-t4evc.mongodb.net/test?retryWrites=true&w=majority
+const url = "mongodb+srv://dbUser:sudo@cluster0-t4evc.mongodb.net/test?retryWrites=true&w=majority";
+//const url = "mongodb://localhost"
 const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
 client.connect(err => {
   //Only test, if db is available
@@ -205,11 +207,12 @@ function getData(i, callback){
         initDate = result[i].date
         initStory = result[i].story
         initName = result[i].image
-        pathIma = dir2 + initName
+        //pathIma = dir2 + initName //MongoDB Version
+        
+        name = initName
+        getImage(name)
 	    }
-
       db.close();
-      callback()
     });
   });  
   
@@ -255,7 +258,7 @@ app.post('/zurueck', async function(req, res) {
 /*** Set fields from site ***/
 
 function refresh(res){
-  res.render('index', {title: initTitle, subtitle: initSubtitle, date: initDate, story: initStory, path: pathIma})
+  res.render('index', {title: initTitle, subtitle: initSubtitle, date: initDate, story: initStory, path: "data:image/gif;base64," + picFile})// pathIma}) //<=MongoDB
 }
 
 
